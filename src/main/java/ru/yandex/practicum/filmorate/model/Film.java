@@ -26,6 +26,5 @@ public class Film {
 
     @JsonSerialize(using = DurationSecondsSerializer.class)
     @JsonDeserialize(using = DurationSecondsDeserializer.class)
-    @Positive(message = "Продолжительность должна быть положительным числом")
     private Duration duration;
 }
