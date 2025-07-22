@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
 import jakarta.validation.constraints.*;
-import java.time.LocalDate ;
+import java.time.LocalDate;
 
 @Data
 public class User {
