@@ -159,7 +159,7 @@ class FilmControllerTest {
         update.setDuration(Duration.ofMinutes(100));
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.update(update));
-        assertTrue(ex.getMessage().contains("Максимальная длина описания — 200 символов"));
+        assertTrue(ex.getMessage().contains("Описание фильма не может быть более 200 символов"));
     }
 
     @Test

@@ -72,7 +72,7 @@ public class FilmService {
             if (film.getDescription().length() > 200) {
                 log.warn("Некорректное описание фильма при {} с ID: {}",
                         isUpdate ? "обновлении" : "создании", film.getId());
-                throw new ValidationException("Максимальная длина описания — 200 символов");
+                throw new ValidationException("Описание фильма не может быть более 200 символов");
             }
         }
 
