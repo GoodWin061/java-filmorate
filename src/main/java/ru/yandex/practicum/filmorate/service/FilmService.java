@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -16,10 +17,12 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
     private final Map<Long, Set<Long>> filmLikes = new HashMap<>();
 
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
     }
 
     public Collection<Film> findAll() {
@@ -90,6 +93,12 @@ public class FilmService {
         if (film == null) {
             log.warn("Фильм с ID: {} не найден", filmId);
             throw new NotFoundException("Фильм не найден");
+        }
+
+        // Проверяем, существует ли пользователь с указанным ID
+        if (userStorage.getById(userId) == null) {
+            log.warn("Пользователь с ID: {} не найден", userId);
+            throw new NotFoundException("Пользователь не найден");
         }
 
         // Добавляем лайк, если его еще нет

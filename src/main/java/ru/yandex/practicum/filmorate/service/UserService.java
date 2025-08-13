@@ -41,13 +41,36 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        // Проверяем, указан ли ID пользователя
         if (user.getId() == null) {
             log.warn("Не указан ID пользователя");
             throw new ValidationException("Id должен быть указан");
         }
+
+        // Проверяем, существует ли пользователь с указанным ID
+        User existingUser = getUserById(user.getId());
+
+        // Валидация пользователя
         validateUser(user, true);
 
-        return userStorage.update(user);
+        // Обновляем поля пользователя, если они не равны null
+        if (user.getEmail() != null) {
+            existingUser.setEmail(user.getEmail());
+        }
+        if (user.getLogin() != null) {
+            existingUser.setLogin(user.getLogin());
+        }
+        if (user.getBirthday() != null) {
+            existingUser.setBirthday(user.getBirthday());
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            existingUser.setName(existingUser.getLogin());
+        } else {
+            existingUser.setName(user.getName());
+        }
+
+        log.info("Пользователь с id {} обновлен", user.getId());
+        return userStorage.update(existingUser);
     }
 
     private void validateUser(User user, boolean isUpdate) {
