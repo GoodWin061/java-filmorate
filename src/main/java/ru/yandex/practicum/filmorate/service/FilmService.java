@@ -5,51 +5,40 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FilmService {
 
-    private final Map<Long, Film> films = new HashMap<>();
+    private final FilmStorage filmStorage;
+    private final Map<Long, Set<Long>> filmLikes = new HashMap<>();
+
+    public FilmService(FilmStorage filmStorage) {
+        this.filmStorage = filmStorage;
+    }
 
     public Collection<Film> findAll() {
-        return films.values();
+        log.info("Запрос на получение всех фильмов.");
+        return filmStorage.findAll();
     }
 
     public Film create(Film film) {
         validateFilm(film, false);
-
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        log.info("Фильм успешно добавлен: id={}, name={}", film.getId(), film.getName());
-        return film;
+        return filmStorage.create(film);
     }
 
     public Film update(Film film) {
         if (film.getId() == null) {
-            log.warn("Попытка обновления фильма без указания ID");
-            throw new ValidationException("Id должен быть указан");
+            log.warn("Попытка обновления фильма без указания ID.");
+            throw new ValidationException("Id должен быть указан.");
         }
-
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("Фильм с id = " + film.getId() + " не найден");
-        }
-
         validateFilm(film, true);
-
-        Film oldFilm = films.get(film.getId());
-        oldFilm.setName(film.getName());
-        oldFilm.setDescription(film.getDescription());
-        oldFilm.setReleaseDate(film.getReleaseDate());
-        oldFilm.setDuration(film.getDuration());
-
-        log.info("Фильм с ID {} успешно обновлён", film.getId());
-        return oldFilm;
+        return filmStorage.update(film);
     }
 
     private void validateFilm(Film film, boolean isUpdate) {
@@ -96,11 +85,39 @@ public class FilmService {
         }
     }
 
-    private long getNextId() {
-        return films.keySet()
-                .stream()
-                .mapToLong(Long::longValue)
-                .max()
-                .orElse(0) + 1;
+    public void addLike(Long filmId, Long userId) {
+        Film film = filmStorage.findById(filmId);
+        if (film == null) {
+            log.warn("Фильм с ID: {} не найден", filmId);
+            throw new NotFoundException("Фильм не найден");
+        }
+
+        // Добавляем лайк, если его еще нет
+        filmLikes.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+        log.info("Пользователь с ID: {} поставил лайк фильму с ID: {}", userId, filmId);
+    }
+
+    public void removeLike(Long filmId, Long userId) {
+        Set<Long> likes = filmLikes.get(filmId);
+        if (likes == null || !likes.remove(userId)) {
+            log.warn("Лайк пользователя с ID: {} не найден для фильма с ID: {}", userId, filmId);
+            throw new NotFoundException("Лайк не найден");
+        }
+        log.info("Пользователь с ID: {} убрал лайк у фильма с ID: {}", userId, filmId);
+    }
+
+    public List<Film> getTopFilms(int count) {
+        // Получаем 10 наиболее популярных фильмов по количеству лайков
+        return filmLikes.entrySet().stream()
+                .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size())) // Сортируем по количеству лайков
+                .limit(count) // Ограничиваем количество
+                .map(Map.Entry::getKey) // Получаем ID фильмов
+                .map(filmStorage::findById) // Получаем фильмы по ID
+                .filter(Objects::nonNull) // Фильтруем null
+                .collect(Collectors.toList()); // Собираем в список
+    }
+
+    public Film getById(Long id) {
+        return filmStorage.findById(id);
     }
 }

@@ -35,4 +35,31 @@ public class FilmController {
         log.debug("Начало обновления фильма с ID: {}", film.getId());
         return filmService.update(film);
     }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Long id) {
+        log.info("Запрос на получение фильма с ID: {}", id);
+        return filmService.getById(id);
+    }
+
+    // Лайк фильма
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Пользователь с ID {} ставит лайк фильму с ID {}", userId, id);
+        filmService.addLike(id, userId);
+    }
+
+    // Удаление лайка
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Пользователь с ID {} удаляет лайк у фильма с ID {}", userId, id);
+        filmService.removeLike(id, userId);
+    }
+
+    // Получение популярных фильмов
+    @GetMapping("/popular")
+    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
+        log.info("Запрос на получение первых {} популярных фильмов", count);
+        return filmService.getTopFilms(count);
+    }
 }

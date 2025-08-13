@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class User {
@@ -19,4 +20,6 @@ public class User {
 
     @Past(message = "Дата рождения должна быть в прошлом")
     private LocalDate birthday;
+
+    private Set<Long> friends;
 }
