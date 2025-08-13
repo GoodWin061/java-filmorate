@@ -5,24 +5,32 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Обработка ошибок валидации 400
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String> handleValidationException(ValidationException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
     // Обработка ошибок "не найдено" 404
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handleNotFoundException(NotFoundException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException e) {
+        Map<String, String> errorBody = new HashMap<>();
+        errorBody.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody);
     }
 
-    // Обработка всех остальных исключений
+    // Обработка ошибок валидации 400
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Map<String, String>> handleValidation(ValidationException e) {
+        Map<String, String> errorBody = new HashMap<>();
+        errorBody.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody);
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleOtherExceptions(Exception e) {
-        return new ResponseEntity<>("Внутренняя ошибка сервера", HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<Map<String, String>> handleOtherExceptions(Exception e) {
+        Map<String, String> errorBody = new HashMap<>();
+        errorBody.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody);
     }
 }
