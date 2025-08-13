@@ -173,7 +173,8 @@ public class UserService {
         for (Long id : friendIds) {
             try {
                 friends.add(getUserById(id));
-            } catch(NotFoundException e) {
+            } catch (NotFoundException e) {
+                log.warn("Пользователь с id={} не найден: {}", id, e.getMessage());
             }
         }
         return friends;
