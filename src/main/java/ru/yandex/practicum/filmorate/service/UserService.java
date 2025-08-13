@@ -25,8 +25,8 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public User createUser (User user) {
-        validateUser (user, false);
+    public User createUser(User user) {
+        validateUser(user, false);
 
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -40,12 +40,12 @@ public class UserService {
         return userStorage.create(user);
     }
 
-    public User updateUser (User user) {
+    public User updateUser(User user) {
         if (user.getId() == null) {
             log.warn("Не указан ID пользователя");
             throw new ValidationException("Id должен быть указан");
         }
-        validateUser (user, true);
+        validateUser(user, true);
 
         return userStorage.update(user);
     }
@@ -173,7 +173,7 @@ public class UserService {
         for (Long id : friendIds) {
             try {
                 friends.add(getUserById(id));
-            } catch (NotFoundException e) {
+            } catch(NotFoundException e) {
             }
         }
         return friends;
