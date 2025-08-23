@@ -66,6 +66,7 @@ Template repository for Filmorate project.
 SELECT user_id, email, login, name, birthday 
 FROM user 
 ORDER BY user_id;
+  ```
 
 ### 2. Получить топ-10 самых популярных фильмов по количеству лайков
 ```sql
@@ -75,6 +76,7 @@ LEFT JOIN like l ON f.film_id = l.film_id
 GROUP BY f.film_id, f.name, f.release_date
 ORDER BY likes_count DESC
 LIMIT 10;
+  ```
 
 ### 3. Получить фильмы с определенным возрастным рейтингом (PG-13)
 ```sql
@@ -85,6 +87,7 @@ LEFT JOIN genre_film gf ON f.film_id = gf.film_id
 LEFT JOIN genre g ON gf.genre_id = g.genre_id
 WHERE m.name = 'PG-13'
 ORDER BY f.release_date DESC;
+  ```
 
 ### 4. Получить ТОП-10 самых активных пользователей (по количеству поставленных лайков)
 ```sql
@@ -94,6 +97,7 @@ LEFT JOIN like l ON u.user_id = l.user_id
 GROUP BY u.user_id, u.login, u.name
 ORDER BY likes_given DESC
 LIMIT 10;
+  ```
 
 ### 5. Получить фильмы, вышедшие в определенный год (2023)
 ```sql
@@ -102,3 +106,4 @@ FROM film f
 JOIN mpa_ratings m ON f.mpa_id = m.mpa_id
 WHERE EXTRACT(YEAR FROM f.release_date) = 2023
 ORDER BY f.release_date DESC;
+  ```
