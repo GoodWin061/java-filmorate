@@ -25,7 +25,7 @@ Template repository for Filmorate project.
 | `name` | VARCHAR (NOT NULL) | Название фильма |
 | `description` | VARCHAR(200) | Описание фильма (макс. 200 символов) |
 | `release_date` | DATE (NOT NULL) | Дата выхода фильма |
-| `duration` | INTERVAL | Продолжительность фильма |
+| `duration` | INTEGER | Продолжительность фильма |
 | `mpa_id` | INTEGER (FK) | Ссылка на возрастной рейтинг |
 
 #### 👥 Дружба (`friendships`)
