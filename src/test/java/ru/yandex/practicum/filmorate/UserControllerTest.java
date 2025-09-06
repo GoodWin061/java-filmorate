@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -20,11 +21,12 @@ class UserControllerTest {
     private UserController controller;
     private UserService service;
     private UserStorage userStorage;
+    private FriendStorage friendStorage;
 
     @BeforeEach
     void setUp() {
         userStorage = new InMemoryUserStorage();
-        service = new UserService(userStorage);
+        service = new UserService(userStorage, friendStorage);
         controller = new UserController(service);
     }
 
