@@ -7,10 +7,7 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -23,12 +20,16 @@ class FilmControllerTest {
     private FilmService service;
     private FilmStorage filmStorage;
     private UserStorage userStorage;
+    private GenreStorage genreStorage;
+    private MpaStorage mpaStorage;
 
     @BeforeEach
     void setUp() {
         filmStorage = new InMemoryFilmStorage();
         userStorage = new InMemoryUserStorage();
-        service = new FilmService(filmStorage, userStorage);
+        genreStorage = new InMemoryGenreStorage();  // добавьте реализацию
+        mpaStorage = new InMemoryMpaStorage();
+        service = new FilmService(filmStorage, userStorage, genreStorage, mpaStorage);
         controller = new FilmController(service);
     }
 
@@ -38,7 +39,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         Film created = controller.create(film);
         assertNotNull(created.getId());
@@ -51,7 +52,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.create(film));
         assertTrue(ex.getMessage().contains("Дата релиза не может быть раньше 28 декабря 1895 года"));
@@ -63,7 +64,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание оп");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         Film created = controller.create(film);
         assertEquals(200, created.getDescription().length());
@@ -75,7 +76,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание опи");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.create(film));
         assertTrue(ex.getMessage().contains("Описание фильма не может быть более 200 символов"));
@@ -87,7 +88,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ZERO);
+        film.setDuration(0);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.create(film));
         assertTrue(ex.getMessage().contains("Продолжительность фильма должна быть положительным числом"));
@@ -99,7 +100,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofSeconds(-10));
+        film.setDuration(-10);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.create(film));
         assertTrue(ex.getMessage().contains("Продолжительность фильма должна быть положительным числом"));
@@ -112,7 +113,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2025, 1, 1));
-        film.setDuration(Duration.ofMinutes(100));
+        film.setDuration(100);
         Film created = controller.create(film);
 
         // Обновляем фильм с граничными значениями
@@ -121,7 +122,7 @@ class FilmControllerTest {
         update.setName("Обновлённый фильм");
         update.setDescription("a".repeat(200));
         update.setReleaseDate(LocalDate.of(1895, 12, 28));
-        update.setDuration(Duration.ofSeconds(1));
+        update.setDuration(1);
 
         Film updated = controller.update(update);
         assertEquals("Обновлённый фильм", updated.getName());
@@ -136,7 +137,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2025, 1, 1));
-        film.setDuration(Duration.ofMinutes(100));
+        film.setDuration(100);
         Film created = controller.create(film);
 
         Film update = new Film();
@@ -144,7 +145,7 @@ class FilmControllerTest {
         update.setName("Обновлённый фильм");
         update.setDescription("Описание");
         update.setReleaseDate(LocalDate.of(1895, 12, 27));
-        update.setDuration(Duration.ofMinutes(100));
+        update.setDuration(100);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.update(update));
         assertTrue(ex.getMessage().contains("Дата релиза не может быть раньше 28 декабря 1895 года"));
@@ -156,7 +157,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2025, 1, 1));
-        film.setDuration(Duration.ofMinutes(100));
+        film.setDuration(100);
         Film created = controller.create(film);
 
         Film update = new Film();
@@ -164,7 +165,7 @@ class FilmControllerTest {
         update.setName("Обновлённый фильм");
         update.setDescription("Описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание описание опи");
         update.setReleaseDate(LocalDate.of(2025, 1, 1));
-        update.setDuration(Duration.ofMinutes(100));
+        update.setDuration(100);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.update(update));
         assertTrue(ex.getMessage().contains("Описание фильма не может быть более 200 символов"));
@@ -176,7 +177,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2025, 1, 1));
-        film.setDuration(Duration.ofMinutes(100));
+        film.setDuration(100);
         Film created = controller.create(film);
 
         Film update = new Film();
@@ -184,7 +185,7 @@ class FilmControllerTest {
         update.setName("Обновлённый фильм");
         update.setDescription("Описание");
         update.setReleaseDate(LocalDate.of(2025, 1, 1));
-        update.setDuration(Duration.ZERO);
+        update.setDuration(0);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> controller.update(update));
         assertTrue(ex.getMessage().contains("Продолжительность фильма должна быть положительным числом"));
