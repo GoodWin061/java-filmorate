@@ -42,28 +42,24 @@ public class UserController {
         return userService.getUserById(id);
     }
 
-    // Добавление в друзья
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Пользователь с ID {} добавляет в друзья пользователя с ID {}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
-    // Удаление из друзей
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Пользователь с ID {} удаляет из друзей пользователя с ID {}", id, friendId);
         userService.removeFriend(id, friendId);
     }
 
-    // Получение списка друзей
     @GetMapping("/{id}/friends")
     public Collection<User> getFriends(@PathVariable Long id) {
         log.info("Запрос на получение списка друзей пользователя с ID {}", id);
         return userService.getFriends(id);
     }
 
-    // Получение списка общих друзей
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
         log.info("Запрос на получение общих друзей для пользователей с ID {} и {}", id, otherId);

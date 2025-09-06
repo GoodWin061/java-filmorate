@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import ru.yandex.practicum.filmorate.converters.*;
-import java.time.Duration;
 import java.time.LocalDate;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.LinkedHashSet;
+
 import jakarta.validation.constraints.*;
 
 /**
@@ -24,7 +22,9 @@ public class Film {
     @NotNull(message = "Дата релиза обязательна")
     private LocalDate releaseDate;
 
-    @JsonSerialize(using = DurationSecondsSerializer.class)
-    @JsonDeserialize(using = DurationSecondsDeserializer.class)
-    private Duration duration;
+    private Integer duration;
+
+    @NotNull
+    private Mpa mpa;
+    private final LinkedHashSet<Genre> genres = new LinkedHashSet<>();
 }

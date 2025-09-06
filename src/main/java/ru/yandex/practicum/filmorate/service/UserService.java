@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
@@ -14,11 +16,12 @@ import java.time.LocalDate;
 @Service
 public class UserService {
 
-
     private final UserStorage userStorage;
+    private final FriendStorage friendStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendStorage friendStorage) {
         this.userStorage = userStorage;
+        this.friendStorage = friendStorage;
     }
 
     public Collection<User> findAllUsers() {
@@ -41,19 +44,15 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        // Проверяем, указан ли ID пользователя
         if (user.getId() == null) {
             log.warn("Не указан ID пользователя");
             throw new ValidationException("Id должен быть указан");
         }
 
-        // Проверяем, существует ли пользователь с указанным ID
         User existingUser = getUserById(user.getId());
 
-        // Валидация пользователя
         validateUser(user, true);
 
-        // Обновляем поля пользователя, если они не равны null
         if (user.getEmail() != null) {
             existingUser.setEmail(user.getEmail());
         }
@@ -74,7 +73,6 @@ public class UserService {
     }
 
     private void validateUser(User user, boolean isUpdate) {
-        // Проверяем E-mail
         if (!isUpdate || user.getEmail() != null) {
             if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
                 log.warn("{} Введен некорректный E-mail: '{}' ", isUpdate ? "Обновление" : "Создание", user.getEmail());
@@ -93,7 +91,6 @@ public class UserService {
             }
         }
 
-        // Проверяем логин
         if (!isUpdate || user.getLogin() != null) {
             if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
                 log.warn("Введен некорректный логин: '{}' при {} ", isUpdate ? "обновлении" : "создании", user.getLogin());
@@ -101,14 +98,12 @@ public class UserService {
             }
         }
 
-        // Проверяем дату рождения
         if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Введена дата рождения в будущем: '{}' при {} ", isUpdate ? "обновлении" : "создании", user.getBirthday());
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
     }
 
-    // Добавление друга
     public void addFriend(Long userId, Long friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
@@ -127,55 +122,28 @@ public class UserService {
             log.info("Пользователи {} и {} теперь друзья", userId, friendId);
             userStorage.update(user);
             userStorage.update(friend);
+            friendStorage.addFriend(userId, friendId);
         } else {
             log.info("Пользователи {} и {} уже являются друзьями", userId, friendId);
         }
     }
 
-    // Удаление из друзей
     public void removeFriend(Long userId, Long friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
 
-        boolean removedFromUser = false;
-        boolean removedFromFriend = false;
+        log.info("Пользователи {} и {} больше не друзья", userId, friendId);
 
-        if (user.getFriends() != null) {
-            removedFromUser = user.getFriends().remove(friendId);
-        }
-        if (friend.getFriends() != null) {
-            removedFromFriend = friend.getFriends().remove(userId);
-        }
+        if (user.getFriends() != null) user.getFriends().remove(friendId);
+        if (friend.getFriends() != null) friend.getFriends().remove(userId);
 
-        if (removedFromUser || removedFromFriend) {
-            log.info("Пользователи {} и {} больше не друзья", userId, friendId);
-            userStorage.update(user);
-            userStorage.update(friend);
-        } else {
-            log.info("Пользователи {} и {} не были друзьями", userId, friendId);
-        }
+        userStorage.update(user);
+        userStorage.update(friend);
+        friendStorage.removeFriend(userId, friendId);
     }
 
-    // Получение общего списка друзей двух пользователей
     public List<User> getCommonFriends(Long userId1, Long userId2) {
-        User user1 = getUserById(userId1);
-        User user2 = getUserById(userId2);
-
-        Set<Long> friends1 = (user1.getFriends() != null) ? user1.getFriends() : new HashSet<>();
-        Set<Long> friends2 = (user2.getFriends() != null) ? user2.getFriends() : new HashSet<>();
-
-        Set<Long> commonIds = new HashSet<>(friends1);
-        commonIds.retainAll(friends2);
-
-        List<User> commonUsers = new ArrayList<>();
-
-        for (Long id : commonIds) {
-            User u = getUserById(id);
-            if (u != null) {
-                commonUsers.add(u);
-            }
-        }
-        return commonUsers;
+        return friendStorage.getCommonFriends(userId1, userId2);
     }
 
     public User getUserById(Long id) {
@@ -187,19 +155,7 @@ public class UserService {
     }
 
     public List<User> getFriends(Long userId) {
-        User user = getUserById(userId);
-        Set<Long> friendIds = user.getFriends();
-        if (friendIds == null || friendIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<User> friends = new ArrayList<>();
-        for (Long id : friendIds) {
-            try {
-                friends.add(getUserById(id));
-            } catch (NotFoundException e) {
-                log.warn("Пользователь с id={} не найден: {}", id, e.getMessage());
-            }
-        }
-        return friends;
+        getUserById(userId);
+        return friendStorage.findAllFriends(userId);
     }
 }
