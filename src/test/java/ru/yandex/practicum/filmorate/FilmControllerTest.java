@@ -128,7 +128,7 @@ class FilmControllerTest {
         assertEquals("Обновлённый фильм", updated.getName());
         assertEquals(200, updated.getDescription().length());
         assertEquals(LocalDate.of(1895, 12, 28), updated.getReleaseDate());
-        assertEquals(Duration.ofSeconds(1), updated.getDuration());
+        assertEquals(1, updated.getDuration());
     }
 
     @Test
