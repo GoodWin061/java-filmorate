@@ -9,7 +9,7 @@ Template repository for Filmorate project.
 
 ### Основные сущности
 
-#### 👤 Пользователи (`user`)
+#### 👤 Пользователи (`users`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `user_id` | INTEGER (PK, AUTO_INCREMENT) | Уникальный идентификатор пользователя |
@@ -35,7 +35,7 @@ Template repository for Filmorate project.
 | `friend_id` | INTEGER (FK → user.user_id) | Идентификатор друга |
 | `friend_request` | BOOLEAN | Статус подтверждения дружбы |
 
-#### ❤️ Лайки (`like`)
+#### ❤️ Лайки (`likes`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `film_id` | INTEGER (FK → film.film_id) | Идентификатор фильма |
@@ -64,7 +64,7 @@ Template repository for Filmorate project.
 ### 1. Получить всех пользователей с их email и датой рождения
 ```sql
 SELECT user_id, email, login, name, birthday 
-FROM user 
+FROM users 
 ORDER BY user_id;
   ```
 
@@ -72,7 +72,7 @@ ORDER BY user_id;
 ```sql
 SELECT f.film_id, f.name, f.release_date, COUNT(l.user_id) as likes_count
 FROM film f
-LEFT JOIN like l ON f.film_id = l.film_id
+LEFT JOIN likes l ON f.film_id = l.film_id
 GROUP BY f.film_id, f.name, f.release_date
 ORDER BY likes_count DESC
 LIMIT 10;
@@ -93,7 +93,7 @@ ORDER BY f.release_date DESC;
 ```sql
 SELECT u.user_id, u.login, u.name, COUNT(l.film_id) as likes_given
 FROM user u
-LEFT JOIN like l ON u.user_id = l.user_id
+LEFT JOIN likes l ON u.user_id = l.user_id
 GROUP BY u.user_id, u.login, u.name
 ORDER BY likes_given DESC
 LIMIT 10;
