@@ -64,7 +64,7 @@ Template repository for Filmorate project.
 ### 1. Получить всех пользователей с их email и датой рождения
 ```sql
 SELECT user_id, email, login, name, birthday 
-FROM user 
+FROM users 
 ORDER BY user_id;
   ```
 
@@ -93,7 +93,7 @@ ORDER BY f.release_date DESC;
 ```sql
 SELECT u.user_id, u.login, u.name, COUNT(l.film_id) as likes_given
 FROM user u
-LEFT JOIN likes l ON u.user_id = l.user_id
+LEFT JOIN like l ON u.user_id = l.user_id
 GROUP BY u.user_id, u.login, u.name
 ORDER BY likes_given DESC
 LIMIT 10;
@@ -103,7 +103,7 @@ LIMIT 10;
 ```sql
 SELECT f.film_id, f.name, f.description, f.release_date, m.name as mpa_rating
 FROM film f
-JOIN mpa_ratings m ON f.mpa_id = m.mpa_id
+JOIN mpa_rating m ON f.mpa_id = m.mpa_id
 WHERE EXTRACT(YEAR FROM f.release_date) = 2023
 ORDER BY f.release_date DESC;
   ```
