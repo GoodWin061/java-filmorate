@@ -9,7 +9,7 @@ Template repository for Filmorate project.
 
 ### Основные сущности
 
-#### 👤 Пользователи (`user`)
+#### 👤 Пользователи (`users`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `user_id` | INTEGER (PK, AUTO_INCREMENT) | Уникальный идентификатор пользователя |
@@ -35,7 +35,7 @@ Template repository for Filmorate project.
 | `friend_id` | INTEGER (FK → user.user_id) | Идентификатор друга |
 | `friend_request` | BOOLEAN | Статус подтверждения дружбы |
 
-#### ❤️ Лайки (`like`)
+#### ❤️ Лайки (`likes`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `film_id` | INTEGER (FK → film.film_id) | Идентификатор фильма |
@@ -53,7 +53,7 @@ Template repository for Filmorate project.
 | `genre_id` | INTEGER (PK, FK → genre.genre_id) | Идентификатор жанра |
 | `film_id` | INTEGER (PK, FK → film.film_id) | Идентификатор фильма |
 
-#### 📊 Возрастные рейтинги (`mpa_ratings`)
+#### 📊 Возрастные рейтинги (`mpa_rating`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `mpa_id` | INTEGER (PK) | Уникальный идентификатор рейтинга |
@@ -64,7 +64,7 @@ Template repository for Filmorate project.
 ### 1. Получить всех пользователей с их email и датой рождения
 ```sql
 SELECT user_id, email, login, name, birthday 
-FROM user 
+FROM users 
 ORDER BY user_id;
   ```
 
@@ -72,7 +72,7 @@ ORDER BY user_id;
 ```sql
 SELECT f.film_id, f.name, f.release_date, COUNT(l.user_id) as likes_count
 FROM film f
-LEFT JOIN like l ON f.film_id = l.film_id
+LEFT JOIN likes l ON f.film_id = l.film_id
 GROUP BY f.film_id, f.name, f.release_date
 ORDER BY likes_count DESC
 LIMIT 10;
@@ -82,7 +82,7 @@ LIMIT 10;
 ```sql
 SELECT f.film_id, f.name, f.release_date, f.duration, g.name as genre
 FROM film f
-JOIN mpa_ratings m ON f.mpa_id = m.mpa_id
+JOIN mpa_rating m ON f.mpa_id = m.mpa_id
 LEFT JOIN genre_film gf ON f.film_id = gf.film_id
 LEFT JOIN genre g ON gf.genre_id = g.genre_id
 WHERE m.name = 'PG-13'
@@ -92,8 +92,8 @@ ORDER BY f.release_date DESC;
 ### 4. Получить ТОП-10 самых активных пользователей (по количеству поставленных лайков)
 ```sql
 SELECT u.user_id, u.login, u.name, COUNT(l.film_id) as likes_given
-FROM user u
-LEFT JOIN like l ON u.user_id = l.user_id
+FROM users u
+LEFT JOIN likes l ON u.user_id = l.user_id
 GROUP BY u.user_id, u.login, u.name
 ORDER BY likes_given DESC
 LIMIT 10;
@@ -103,7 +103,7 @@ LIMIT 10;
 ```sql
 SELECT f.film_id, f.name, f.description, f.release_date, m.name as mpa_rating
 FROM film f
-JOIN mpa_ratings m ON f.mpa_id = m.mpa_id
+JOIN mpa_rating m ON f.mpa_id = m.mpa_id
 WHERE EXTRACT(YEAR FROM f.release_date) = 2023
 ORDER BY f.release_date DESC;
   ```
