@@ -9,7 +9,7 @@ Template repository for Filmorate project.
 
 ### Основные сущности
 
-#### 👤 Пользователи (`users`)
+#### 👤 Пользователи (`user`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `user_id` | INTEGER (PK, AUTO_INCREMENT) | Уникальный идентификатор пользователя |
@@ -35,7 +35,7 @@ Template repository for Filmorate project.
 | `friend_id` | INTEGER (FK → user.user_id) | Идентификатор друга |
 | `friend_request` | BOOLEAN | Статус подтверждения дружбы |
 
-#### ❤️ Лайки (`likes`)
+#### ❤️ Лайки (`like`)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `film_id` | INTEGER (FK → film.film_id) | Идентификатор фильма |
@@ -64,7 +64,7 @@ Template repository for Filmorate project.
 ### 1. Получить всех пользователей с их email и датой рождения
 ```sql
 SELECT user_id, email, login, name, birthday 
-FROM users 
+FROM user 
 ORDER BY user_id;
   ```
 
@@ -72,7 +72,7 @@ ORDER BY user_id;
 ```sql
 SELECT f.film_id, f.name, f.release_date, COUNT(l.user_id) as likes_count
 FROM film f
-LEFT JOIN likes l ON f.film_id = l.film_id
+LEFT JOIN like l ON f.film_id = l.film_id
 GROUP BY f.film_id, f.name, f.release_date
 ORDER BY likes_count DESC
 LIMIT 10;
@@ -82,7 +82,7 @@ LIMIT 10;
 ```sql
 SELECT f.film_id, f.name, f.release_date, f.duration, g.name as genre
 FROM film f
-JOIN mpa_ratings m ON f.mpa_id = m.mpa_id
+JOIN mpa_rating m ON f.mpa_id = m.mpa_id
 LEFT JOIN genre_film gf ON f.film_id = gf.film_id
 LEFT JOIN genre g ON gf.genre_id = g.genre_id
 WHERE m.name = 'PG-13'
