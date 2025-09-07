@@ -92,7 +92,7 @@ ORDER BY f.release_date DESC;
 ### 4. Получить ТОП-10 самых активных пользователей (по количеству поставленных лайков)
 ```sql
 SELECT u.user_id, u.login, u.name, COUNT(l.film_id) as likes_given
-FROM user u
+FROM users u
 LEFT JOIN likes l ON u.user_id = l.user_id
 GROUP BY u.user_id, u.login, u.name
 ORDER BY likes_given DESC
