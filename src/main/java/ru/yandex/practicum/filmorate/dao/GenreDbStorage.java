@@ -20,7 +20,7 @@ import static java.util.function.UnaryOperator.identity;
 @RequiredArgsConstructor
 @Repository
 public class GenreDbStorage implements GenreStorage {
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public List<Genre> findAllGenres() {
