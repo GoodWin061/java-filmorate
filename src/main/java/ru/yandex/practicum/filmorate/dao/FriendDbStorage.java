@@ -22,7 +22,7 @@ public class FriendDbStorage implements FriendStorage {
 
     @Autowired
     public FriendDbStorage(NamedParameterJdbcTemplate namedParameterJdbcTemplate, @Qualifier("userDbStorage") UserStorage userStorage) {
-        this.namedParameterJdbcTemplate  = namedParameterJdbcTemplate ;
+        this.namedParameterJdbcTemplate  = namedParameterJdbcTemplate;
         this.userStorage = userStorage;
     }
 
@@ -63,21 +63,11 @@ public class FriendDbStorage implements FriendStorage {
                 "JOIN friendships f2 ON u.user_id = f2.friend_id " +
                 "WHERE f1.user_id = :id1 AND f2.user_id = :id2 " +
                 "AND f1.friend_request = TRUE AND f2.friend_request = TRUE " +
-                "AND u.user_id NOT IN (:id1, :id2)";
+                "AND u.user_id NOT IN (:ids)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id1", id)
-                .addValue("id2", otherId);
-        params.addValue("id1", id);
-        params.addValue("id2", otherId);
-        params.addValue("ids", List.of(id, otherId));
-
-        sql = "SELECT u.user_id, u.email, u.login, u.name, u.birthday " +
-                "FROM users u " +
-                "JOIN friendships f1 ON u.user_id = f1.friend_id " +
-                "JOIN friendships f2 ON u.user_id = f2.friend_id " +
-                "WHERE f1.user_id = :id1 AND f2.user_id = :id2 " +
-                "AND f1.friend_request = TRUE AND f2.friend_request = TRUE " +
-                "AND u.user_id NOT IN (:ids)";
+                .addValue("id2", otherId)
+                .addValue("ids", List.of(id, otherId));
 
         return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> makeFriend(rs));
     }
