@@ -1,8 +1,9 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -21,23 +22,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final RowMapper<User> userRowMapper = this::mapRowToUser;
 
     @Override
     public User create(User user) {
-        String sql = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = "INSERT INTO users (email, login, name, birthday) VALUES (:email, :login, :name, :birthday)";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", user.getEmail());
+        params.addValue("login", user.getLogin());
+        params.addValue("name", user.getName());
+        params.addValue("birthday", Date.valueOf(user.getBirthday()));
 
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"user_id"});
-            ps.setString(1, user.getEmail());
-            ps.setString(2, user.getLogin());
-            ps.setString(3, user.getName());
-            ps.setDate(4, Date.valueOf(user.getBirthday()));
-            return ps;
-        }, keyHolder);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        namedParameterJdbcTemplate.update(sql, params, keyHolder, new String[]{"user_id"});
 
         Long id = keyHolder.getKey().longValue();  // Получаем сгенерированный user_id как Long
         user.setId(id);
@@ -46,14 +45,15 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-        int updatedRows = jdbcTemplate.update(sql,
-                user.getEmail(),
-                user.getLogin(),
-                user.getName(),
-                Date.valueOf(user.getBirthday()),
-                user.getId());
+        String sql = "UPDATE users SET email = :email, login = :login, name = :name, birthday = :birthday WHERE user_id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", user.getEmail());
+        params.addValue("login", user.getLogin());
+        params.addValue("name", user.getName());
+        params.addValue("birthday", Date.valueOf(user.getBirthday()));
+        params.addValue("id", user.getId());
 
+        int updatedRows = namedParameterJdbcTemplate.update(sql, params);
         if (updatedRows == 0) {
             throw new NotFoundException("Пользователь с id = " + user.getId() + " не найден");
         }
@@ -63,13 +63,16 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Collection<User> findAll() {
         String sql = "SELECT * FROM users";
-        return jdbcTemplate.query(sql, userRowMapper);
+        return namedParameterJdbcTemplate.query(sql, new MapSqlParameterSource(), userRowMapper);
     }
 
     @Override
     public User getById(Long id) {
-        String sql = "SELECT * FROM users WHERE user_id = ?";
-        List<User> users = jdbcTemplate.query(sql, userRowMapper, id);
+        String sql = "SELECT * FROM users WHERE user_id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("id", id);
+
+        List<User> users = namedParameterJdbcTemplate.query(sql, params, userRowMapper);
         if (users.isEmpty()) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
